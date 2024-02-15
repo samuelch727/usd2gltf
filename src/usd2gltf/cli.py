@@ -1,7 +1,36 @@
 import argparse
 import sys
 import logging
-import usd2gltf.converter as converter
+import converter as converter
+from pxr import Usd, UsdShade, Sdf
+
+def preprocess_usd_stage_for_gltf_conversion(stage):
+    # Iterate over all materials in the stage
+    for prim in stage.Traverse():
+        if prim.IsA(UsdShade.Material):
+            material = UsdShade.Material(prim)
+            
+            # Ensure the material's 'frame:stPrimvarName' input exists and set it to 'st'
+            stInput = material.GetInput('frame:stPrimvarName')
+            if not stInput:
+                stInput = material.CreateInput('frame:stPrimvarName', Sdf.ValueTypeNames.Token)
+            stInput.Set('st')
+                
+            # Define or find the UsdPrimvarReader_float2 shader for 'st' reading
+            stReaderPath = prim.GetPath().AppendChild("stReader")
+            stReader = UsdShade.Shader.Define(stage, stReaderPath)
+            stReader.CreateIdAttr('UsdPrimvarReader_float2')
+                
+            # Set the 'varname' input of the reader to 'st'
+            varnameInput = stReader.CreateInput('varname', Sdf.ValueTypeNames.Token)
+            varnameInput.Set('st')
+                
+            # Correctly connect the material's 'st' input to the PrimvarReader's output
+            resultOutput = stReader.CreateOutput('result', Sdf.ValueTypeNames.Float2)
+            stInput.ConnectToSource(resultOutput)
+
+            print(f"Configured 'st' primvar reader for material: {prim.GetPath()}")
+
 
 
 def run(args):
@@ -14,6 +43,7 @@ def run(args):
     factory.flatten_xform_animation = args.flatten
 
     stage = factory.load_usd(args.input)
+    preprocess_usd_stage_for_gltf_conversion(stage)
     factory.process(stage, args.output)
 
     print("Converted!")
@@ -75,3 +105,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

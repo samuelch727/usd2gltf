@@ -624,6 +624,8 @@ def add_skeleton_rig(converter, usd_skeleton):
     for idx, joint in enumerate(joints):
         node_id = len(converter.gltfDoc.nodes)
 
+        if jointNames is None:
+            continue
         joint_path = Sdf.Path(jointNames[idx])
 
         gltfNode = Node()

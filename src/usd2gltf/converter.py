@@ -14,7 +14,7 @@ from gltflib import (
 )
 import logging
 from pathlib import Path
-from usd2gltf.converters import (
+from converters import (
         usd_mesh,
         usd_xform,
         usd_material,

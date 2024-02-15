@@ -132,23 +132,30 @@ def handle_texture(
         d_id = d.GetShaderId()
 
         if d_id == "UsdPrimvarReader_float2":
-            # handle uv channel
+            # Attempt to handle uv channel
             uv_map_name = d.GetInput("varname").Get()
 
-            mat_path = usd_material.GetPrim().GetPrimPath()
-
-            if mat_path not in converter.material_uv_indices:
-                converter.material_uv_indices[mat_path] = {}
-
-            if uv_map_name in converter.material_uv_indices[mat_path]:
-                uv_idx = converter.material_uv_indices[mat_path][uv_map_name]
+            # If uv_map_name is None, assign a default name or index
+            if uv_map_name is None:
+                uv_map_name = "default"  # This can be changed to a more suitable default name
+            
             else:
-                uv_idx = len(converter.material_uv_indices[mat_path])
-                logger.debug(
-                    "   - UsdPrimvarSampler: " + uv_map_name + " : " + str(uv_idx)
-                )
 
-            converter.material_uv_indices[mat_path][uv_map_name] = uv_idx
+                mat_path = usd_material.GetPrim().GetPrimPath()
+
+                if mat_path not in converter.material_uv_indices:
+                    converter.material_uv_indices[mat_path] = {}
+
+                if uv_map_name in converter.material_uv_indices[mat_path]:
+                    uv_idx = converter.material_uv_indices[mat_path][uv_map_name]
+                else:
+                    uv_idx = len(converter.material_uv_indices[mat_path])
+                    logger.debug(str(uv_idx))
+                    logger.debug(
+                        "   - UsdPrimvarSampler: " + uv_map_name + " : " + str(uv_idx)
+                    )
+
+                converter.material_uv_indices[mat_path][uv_map_name] = uv_idx
 
         elif d_id == "UsdTransform2d":
             # handle uv transform

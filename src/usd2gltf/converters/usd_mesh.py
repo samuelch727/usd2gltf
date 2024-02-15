@@ -364,7 +364,7 @@ def convert(converter, usd_mesh):
 
                     elif "uniform" in displayColor.GetInterpolation():
                         rawColors = common._GetFlattenedStaticValue(displayColor)
-                        convertedColors = [rawColors[int(x)] for x in sub_index_array]
+                        convertedColors = [rawColors[int(x)] for x in sub_index_array if int(x) < len(rawColors)]
 
                     convertedColors = np.array(convertedColors, "float32")
                     convertedColors = convertedColors.reshape(
